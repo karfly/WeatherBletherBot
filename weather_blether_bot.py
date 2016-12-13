@@ -31,7 +31,7 @@ class WeatherBletherBot(telepot.helper.ChatHandler):
             text = msg['text']
             logging.info('Chat id: {} | Message: {}'.format(chat_id, text))
 
-            if text.startswith('start'):
+            if text.startswith('/start'):
                 self.sender.sendMessage(self.start_message)
             else:
                 builder = self.weather_answer_builder.build_answer(text)
