@@ -1,9 +1,11 @@
 import re
 import json
 from datetime import datetime, timedelta
+
 import logging
 
 import pymorphy2
+
 from weather_api_wrapper import WeatherApiWrapper
 
 
@@ -25,21 +27,25 @@ class WeatherAnswerBuilder(object):
         city_name = self.parse_city_name(text)
         dt = self.parse_dt(text)
 
-        lat, lon = self.weather_api_wrapper.get_lat_lon_by_city_name(city_name)
+        lat, lon, corrected_city_name = self.weather_api_wrapper.get_lat_lon_by_city_name(city_name)
         logging.info('lat: {}, lon: {}'.format(lat, lon))
 
         description, temp, humidity, wind_speed = self.weather_api_wrapper.get_weather_forecast(lat, lon, dt)
 
-        forecast_str = 'В {} будет {} ({}).\n'.format(self.morph.parse(city_name)[0].inflect({'loct'}).word.title(),
-                                                    description,
-                                                    dt.strftime('%d.%m.%Y, %H:%M'))
-        forecast_str += 'Температура {} °C, относительная влажность: {}%, скорость ветра: {} м/с.\n'.format(temp,
-                                                                                                            humidity,
-                                                                                                            wind_speed)
+        forecast_str = 'В {} будет {} ({}).\n'.format(
+            self.morph.parse(corrected_city_name)[0].inflect({'loct'}).word.title(),
+            description,
+            dt.strftime('%d.%m.%Y, %H:%M'))
+        forecast_str += 'Температура {} °C, относительная влажность: {}%, скорость ветра: {} м/с.\n'.format(
+            temp,
+            humidity,
+            wind_speed)
+
         logging.info('Forecast string: {}'.format(forecast_str))
         yield forecast_str
 
-        image_url = self.weather_api_wrapper.get_image_url_by_text_request('{} {}'.format(city_name, description))
+        image_url = self.weather_api_wrapper.get_image_url_by_text_request(
+            '{} {}'.format(corrected_city_name, description))
         yield image_url
 
         poem = self.weather_api_wrapper.get_poem_by_text_request(description)
@@ -47,7 +53,7 @@ class WeatherAnswerBuilder(object):
 
     def parse_city_name(self, text):
         """
-        Founds city in text and returns it in the nominative case.
+        Founds city in text and returns it's name in the nominative case.
         :param text: input string
         :return: city name in the nominative case
 
@@ -109,9 +115,3 @@ class WeatherAnswerBuilder(object):
             return now + timedelta(days=int(delta_days_found[0]))
 
         return now
-
-if __name__ == '__main__':
-    wab = WeatherAnswerBuilder()
-    text = 'Погода в Москве утром'
-    print('city: ', wab.parse_city_name(text))
-    print('date: ', wab.parse_dt(text))

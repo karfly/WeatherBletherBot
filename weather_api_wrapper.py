@@ -1,27 +1,26 @@
+import os
+import numpy as np
+
 import json
 import requests
-
-import numpy as np
 
 import urllib
 import urllib.parse
 
 from bs4 import BeautifulSoup
 
-import datetime
-
 
 class WeatherApiWrapper(object):
     def __init__(self):
-        with open('tokens/yandex_weather') as fin:
-            self.yandex_weather_api_key = fin.read().strip()
+        self.yandex_weather_api_key = os.environ.get('YANDEX_WEATHER_API_KEY')
+        print(self.yandex_weather_api_key)
 
     @staticmethod
     def get_lat_lon_by_city_name(city_name):
         """
-        Founds city's lat and lon by name
+        Founds city's lat and lon by name. Also returns corrected city name
         :param city_name: city name
-        :return: lat, lon
+        :return: lat, lon, corrected city name
         """
         yandex_geocode_url = 'http://geocode-maps.yandex.ru/1.x/?'
         r = requests.get(yandex_geocode_url +
@@ -34,11 +33,14 @@ class WeatherApiWrapper(object):
 
         lon_lat_string = j['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos']
         lon, lat = map(float, lon_lat_string.split())
-        return lat, lon
+
+        corrected_city_name = j['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['name']
+
+        return lat, lon, corrected_city_name
 
     def get_weather_forecast(self, lat, lon, dt):
         """
-        Returns weather for (lat, lon) coordinate for dt
+        Returns nearest weather forecast for (lat, lon) coordinate for dt
         :param lat: latitude
         :param lon: latitude
         :param dt: datetime to forecast for
@@ -54,7 +56,7 @@ class WeatherApiWrapper(object):
         http_request = yandex_weather_url + http_params_str
 
         r = requests.get(http_request,
-                         params={
+                         headers={
                              'X-Yandex-API-Key': self.yandex_weather_api_key
                          })
 
@@ -72,13 +74,12 @@ class WeatherApiWrapper(object):
 
         forecast = find_nearest_forecast(forecasts, dt)
 
-        return j['l10n'][forecast['condition']], forecast['temp'],forecast['humidity'], forecast['wind_speed']
-
+        return j['l10n'][forecast['condition']], forecast['temp'], forecast['humidity'], forecast['wind_speed']
 
     @staticmethod
     def get_image_url_by_text_request(text_request):
         """
-        Returs random image url in Yandex.Images by given text request
+        Returs random image url from Yandex.Images by a given text request
         :param text_request: text request to search image
         :return: image url
         """
@@ -118,7 +119,7 @@ class WeatherApiWrapper(object):
 
         poem_elem_chosen = poem_elems[np.random.randint(0, len(poem_elems))]
 
-        def clean_poem_text(poem_elem):
+        def clean_poem_elem_text(poem_elem):
             text = ''
             for e in poem_elem.recursiveChildGenerator():
                 if isinstance(e, str):
@@ -127,4 +128,4 @@ class WeatherApiWrapper(object):
                     text += '\n'
             return text.strip()
 
-        return clean_poem_text(poem_elem_chosen)
+        return clean_poem_elem_text(poem_elem_chosen)

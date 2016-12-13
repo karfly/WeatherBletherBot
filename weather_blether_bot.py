@@ -1,12 +1,15 @@
-# import sys
+import os
+
 import telepot
 from telepot.delegate import per_chat_id, create_open, pave_event_space
+
 import urllib.request
 
 from weather_answer_builder import WeatherAnswerBuilder
 
 # Logging
 import logging
+
 logging.basicConfig(filename='log', filemode='a',
                     format='%(asctime)s %(message)s', datefmt='%H:%M:%S',
                     level=logging.INFO)
@@ -39,12 +42,11 @@ class WeatherBletherBot(telepot.helper.ChatHandler):
 
 
 if __name__ == '__main__':
-    with open('tokens/telegram') as fin:
-        token = fin.read()
+    telegram_token = os.environ.get('TELEGRAM_TOKEN')
 
-    bot = telepot.DelegatorBot(token, [
+    bot = telepot.DelegatorBot(telegram_token, [
         pave_event_space()(
-            per_chat_id(), create_open, WeatherBletherBot, timeout=10),
+            per_chat_id(), create_open, WeatherBletherBot, timeout=86400),
     ])
 
     bot.message_loop(run_forever='Listening ...')
