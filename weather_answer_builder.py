@@ -13,7 +13,7 @@ class WeatherAnswerBuilder(object):
     def __init__(self):
         self.weather_api_wrapper = WeatherApiWrapper()
 
-        with open('dicts/dicts.json') as fin:
+        with open('data/dicts.json') as fin:
             self.dicts = json.load(fin)
 
         self.morph = pymorphy2.MorphAnalyzer()

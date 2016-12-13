@@ -13,7 +13,6 @@ from bs4 import BeautifulSoup
 class WeatherApiWrapper(object):
     def __init__(self):
         self.yandex_weather_api_key = os.environ.get('YANDEX_WEATHER_API_KEY')
-        print(self.yandex_weather_api_key)
 
     @staticmethod
     def get_lat_lon_by_city_name(city_name):
