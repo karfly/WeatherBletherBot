@@ -10,5 +10,5 @@ pymorphy2==0.8
 pymorphy2-dicts==2.4.393442.3710985
 requests==2.12.3
 telepot==10.2
-urllib3==1.19.1
+urllib3==1.24.2
 yarl==0.7.1
